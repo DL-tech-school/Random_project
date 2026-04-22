@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <title>Random Generator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #1e1e2f, #2b5876);
+      color: white;
+      text-align: center;
+      padding: 40px;
+    }
+
+    h1 {
+      margin-bottom: 30px;
+    }
+
+    .container {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      margin-bottom: 30px;
+    }
+
+    .column {
+      background: rgba(255,255,255,0.1);
+      padding: 20px;
+      border-radius: 15px;
+      width: 250px;
+      backdrop-filter: blur(10px);
+    }
+
+    .result {
+      font-size: 20px;
+      margin-top: 10px;
+      min-height: 40px;
+    }
+
+    button {
+      background: #ff7a18;
+      border: none;
+      padding: 15px 30px;
+      font-size: 18px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: #ff9a3c;
+      transform: scale(1.05);
+    }
+
+    .reset {
+      margin-top: 15px;
+      background: #555;
+    }
+  </style>
+</head>
+<body>
+
+<h1>🎲 Генератор ідей</h1>
+
+<div class="container">
+  <div class="column">
+    <h3>Технологія</h3>
+    <div class="result" id="leftResult">—</div>
+  </div>
+
+  <div class="column">
+    <h3>Проблема</h3>
+    <div class="result" id="rightResult">—</div>
+  </div>
+</div>
+
+<button onclick="generate()">Згенерувати</button>
+<br>
+<button class="reset" onclick="reset()">🔄 Скинути</button>
+
+<script>
+const originalLeft = [
+  "Мобільний додаток",
+  "ШІ (AI)",
+  "Смарт-гаджет",
+  "VR",
+  "Чат-бот",
+  "Гейміфікація",
+  "QR-коди",
+  "Соцмережа"
+];
+
+const originalRight = [
+  "Безпритульні тварини",
+  "Стрес і тривожність",
+  "Сортування сміття",
+  "Шкільні обіди",
+  "Безпека ввечері",
+  "Вивчення мов",
+  "Допомога літнім",
+  "Кишенькові гроші"
+];
+
+let leftPool = [...originalLeft];
+let rightPool = [...originalRight];
+
+function getRandom(arr) {
+  const index = Math.floor(Math.random() * arr.length);
+  return arr.splice(index, 1)[0];
+}
+
+function generate() {
+  if (leftPool.length === 0 || rightPool.length === 0) {
+    alert("Варіанти закінчились 😅 Натисни 'Скинути'");
+    return;
+  }
+
+  const left = getRandom(leftPool);
+  const right = getRandom(rightPool);
+
+  document.getElementById("leftResult").textContent = left;
+  document.getElementById("rightResult").textContent = right;
+}
+
+function reset() {
+  leftPool = [...originalLeft];
+  rightPool = [...originalRight];
+  document.getElementById("leftResult").textContent = "—";
+  document.getElementById("rightResult").textContent = "—";
+}
+</script>
+
+</body>
+</html>
