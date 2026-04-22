@@ -25,9 +25,11 @@ h1 {
 }
 
 .wrapper {
-  max-width: 900px;
+  max-width: 1100px;
   margin: auto;
 }
+
+/* ====== TABLE ====== */
 
 .table {
   display: flex;
@@ -43,9 +45,21 @@ h1 {
   backdrop-filter: blur(15px);
 }
 
-.column h2 {
+/* ====== HEADERS ====== */
+
+.header {
+  font-weight: bold;
   margin-bottom: 10px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  display: inline-block;
 }
+
+.sphere { background: #00c6ff; color: black; }
+.tech { background: #ff7a18; }
+.problem { background: #dd2476; }
+
+/* ====== ITEMS ====== */
 
 .item {
   padding: 8px;
@@ -59,6 +73,8 @@ h1 {
   text-decoration: line-through;
 }
 
+/* ====== RESULTS ====== */
+
 .result-box {
   display: flex;
   gap: 20px;
@@ -71,15 +87,20 @@ h1 {
   padding: 25px;
   border-radius: 20px;
   background: rgba(255,255,255,0.1);
-  font-size: 20px;
+  font-size: 18px;
   min-height: 80px;
   display: flex;
-  align-items: center;
+  flex-direction: column;
   justify-content: center;
   backdrop-filter: blur(20px);
-  position: relative;
-  overflow: hidden;
 }
+
+.result span {
+  opacity: 0.7;
+  font-size: 14px;
+}
+
+/* ====== ANIMATION ====== */
 
 .spin {
   animation: spin 0.5s linear infinite;
@@ -89,6 +110,8 @@ h1 {
   0% {transform: translateY(0);}
   100% {transform: translateY(-10px);}
 }
+
+/* ====== BUTTONS ====== */
 
 button {
   background: linear-gradient(45deg, #ff512f, #dd2476);
@@ -123,17 +146,15 @@ button:hover {
 <h1>🎲 Генератор ідей</h1>
 
 <div class="table">
-  <div class="column" id="leftColumn">
-    <h2>Технологія</h2>
-  </div>
-  <div class="column" id="rightColumn">
-    <h2>Проблема</h2>
-  </div>
+  <div class="column" id="sphereColumn"></div>
+  <div class="column" id="leftColumn"></div>
+  <div class="column" id="rightColumn"></div>
 </div>
 
 <div class="result-box">
-  <div class="result" id="leftResult">Натисни “Згенерувати”</div>
-  <div class="result" id="rightResult">Натисни “Згенерувати”</div>
+  <div class="result" id="sphereResult"><span>Сфера</span>—</div>
+  <div class="result" id="leftResult"><span>Технологія</span>—</div>
+  <div class="result" id="rightResult"><span>Проблема</span>—</div>
 </div>
 
 <button onclick="generate()">🎲 Згенерувати</button>
@@ -143,6 +164,12 @@ button:hover {
 </div>
 
 <script>
+const sphereData = [
+  "Місто та екологія",
+  "Освіта та саморозвиток",
+  "Побут та безпека"
+];
+
 const leftData = [
   "Мобільний додаток",
   "ШІ (AI)",
@@ -168,12 +195,23 @@ const rightData = [
 let leftPool = [];
 let rightPool = [];
 
+/* ====== RENDER ====== */
+
 function renderList() {
+  const sphereCol = document.getElementById("sphereColumn");
   const leftCol = document.getElementById("leftColumn");
   const rightCol = document.getElementById("rightColumn");
 
-  leftCol.innerHTML = "<h2>Технологія</h2>";
-  rightCol.innerHTML = "<h2>Проблема</h2>";
+  sphereCol.innerHTML = '<div class="header sphere">Сфера</div>';
+  leftCol.innerHTML = '<div class="header tech">Технологія</div>';
+  rightCol.innerHTML = '<div class="header problem">Проблема</div>';
+
+  sphereData.forEach(item => {
+    const div = document.createElement("div");
+    div.className = "item";
+    div.textContent = item;
+    sphereCol.appendChild(div);
+  });
 
   leftData.forEach(item => {
     const div = document.createElement("div");
@@ -192,12 +230,14 @@ function renderList() {
   });
 }
 
+/* ====== ANIMATION ====== */
+
 function spinAnimation(el) {
   el.classList.add("spin");
   let count = 0;
 
   const interval = setInterval(() => {
-    el.textContent = "🎲 " + Math.random().toString(36).substring(2,7);
+    el.innerHTML = "🎲...";
     count++;
     if (count > 10) {
       clearInterval(interval);
@@ -206,40 +246,49 @@ function spinAnimation(el) {
   }, 50);
 }
 
-function generate() {
-  if (leftPool.length === 0 || rightPool.length === 0) {
-    alert("Всі варіанти використані! Роблю ресет 🔄");
-    reset();
-    return;
-  }
+/* ====== GENERATE ====== */
 
+function generate() {
+
+  const sphereEl = document.getElementById("sphereResult");
   const leftEl = document.getElementById("leftResult");
   const rightEl = document.getElementById("rightResult");
 
+  spinAnimation(sphereEl);
   spinAnimation(leftEl);
   spinAnimation(rightEl);
 
   setTimeout(() => {
+
+    // сфера (без обмежень)
+    const sphere = sphereData[Math.floor(Math.random() * sphereData.length)];
+
+    // технологія + проблема (без повторів)
+    if (leftPool.length === 0 || rightPool.length === 0) {
+      alert("Технології або проблеми закінчились — перезапуск 🔄");
+      reset();
+      return;
+    }
+
     const lIndex = Math.floor(Math.random() * leftPool.length);
     const rIndex = Math.floor(Math.random() * rightPool.length);
 
     const left = leftPool.splice(lIndex,1)[0];
     const right = rightPool.splice(rIndex,1)[0];
 
-    leftEl.textContent = left;
-    rightEl.textContent = right;
+    sphereEl.innerHTML = "<span>Сфера</span>" + sphere;
+    leftEl.innerHTML = "<span>Технологія</span>" + left;
+    rightEl.innerHTML = "<span>Проблема</span>" + right;
 
     document.getElementById("L-" + left).classList.add("used");
     document.getElementById("R-" + right).classList.add("used");
 
     updateCounter();
+
   }, 600);
 }
 
-function updateCounter() {
-  document.getElementById("counter").textContent =
-    `Залишилось: ${leftPool.length} × ${rightPool.length}`;
-}
+/* ====== RESET ====== */
 
 function reset() {
   leftPool = [...leftData];
@@ -249,12 +298,21 @@ function reset() {
     el.classList.remove("used");
   });
 
-  document.getElementById("leftResult").textContent = "Натисни “Згенерувати”";
-  document.getElementById("rightResult").textContent = "Натисни “Згенерувати”";
+  document.getElementById("sphereResult").innerHTML = "<span>Сфера</span>—";
+  document.getElementById("leftResult").innerHTML = "<span>Технологія</span>—";
+  document.getElementById("rightResult").innerHTML = "<span>Проблема</span>—";
 
   updateCounter();
 }
 
+/* ====== COUNTER ====== */
+
+function updateCounter() {
+  document.getElementById("counter").textContent =
+    `Залишилось: ${leftPool.length} × ${rightPool.length}`;
+}
+
+/* INIT */
 renderList();
 reset();
 </script>
