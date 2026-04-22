@@ -1,85 +1,149 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-  <meta charset="UTF-8">
-  <title>Random Generator</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #1e1e2f, #2b5876);
-      color: white;
-      text-align: center;
-      padding: 40px;
-    }
+<meta charset="UTF-8">
+<title>Генератор ідей</title>
 
-    h1 {
-      margin-bottom: 30px;
-    }
+<style>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
-    .container {
-      display: flex;
-      justify-content: center;
-      gap: 40px;
-      margin-bottom: 30px;
-    }
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+  color: white;
+  padding: 30px;
+  text-align: center;
+}
 
-    .column {
-      background: rgba(255,255,255,0.1);
-      padding: 20px;
-      border-radius: 15px;
-      width: 250px;
-      backdrop-filter: blur(10px);
-    }
+h1 {
+  margin-bottom: 25px;
+  font-size: 32px;
+}
 
-    .result {
-      font-size: 20px;
-      margin-top: 10px;
-      min-height: 40px;
-    }
+.wrapper {
+  max-width: 900px;
+  margin: auto;
+}
 
-    button {
-      background: #ff7a18;
-      border: none;
-      padding: 15px 30px;
-      font-size: 18px;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: 0.3s;
-    }
+.table {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 25px;
+}
 
-    button:hover {
-      background: #ff9a3c;
-      transform: scale(1.05);
-    }
+.column {
+  flex: 1;
+  background: rgba(255,255,255,0.08);
+  border-radius: 20px;
+  padding: 20px;
+  backdrop-filter: blur(15px);
+}
 
-    .reset {
-      margin-top: 15px;
-      background: #555;
-    }
-  </style>
+.column h2 {
+  margin-bottom: 10px;
+}
+
+.item {
+  padding: 8px;
+  margin: 5px 0;
+  border-radius: 8px;
+  transition: 0.3s;
+}
+
+.item.used {
+  opacity: 0.3;
+  text-decoration: line-through;
+}
+
+.result-box {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  margin-bottom: 25px;
+}
+
+.result {
+  flex: 1;
+  padding: 25px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.1);
+  font-size: 20px;
+  min-height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(20px);
+  position: relative;
+  overflow: hidden;
+}
+
+.spin {
+  animation: spin 0.5s linear infinite;
+}
+
+@keyframes spin {
+  0% {transform: translateY(0);}
+  100% {transform: translateY(-10px);}
+}
+
+button {
+  background: linear-gradient(45deg, #ff512f, #dd2476);
+  border: none;
+  padding: 15px 30px;
+  font-size: 18px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: 0.3s;
+  color: white;
+}
+
+button:hover {
+  transform: scale(1.05);
+}
+
+.reset {
+  margin-left: 10px;
+  background: #444;
+}
+
+.counter {
+  margin-top: 10px;
+  opacity: 0.7;
+}
+</style>
 </head>
+
 <body>
 
+<div class="wrapper">
 <h1>🎲 Генератор ідей</h1>
 
-<div class="container">
-  <div class="column">
-    <h3>Технологія</h3>
-    <div class="result" id="leftResult">—</div>
+<div class="table">
+  <div class="column" id="leftColumn">
+    <h2>Технологія</h2>
   </div>
-
-  <div class="column">
-    <h3>Проблема</h3>
-    <div class="result" id="rightResult">—</div>
+  <div class="column" id="rightColumn">
+    <h2>Проблема</h2>
   </div>
 </div>
 
-<button onclick="generate()">Згенерувати</button>
-<br>
+<div class="result-box">
+  <div class="result" id="leftResult">Натисни “Згенерувати”</div>
+  <div class="result" id="rightResult">Натисни “Згенерувати”</div>
+</div>
+
+<button onclick="generate()">🎲 Згенерувати</button>
 <button class="reset" onclick="reset()">🔄 Скинути</button>
 
+<div class="counter" id="counter"></div>
+</div>
+
 <script>
-const originalLeft = [
+const leftData = [
   "Мобільний додаток",
   "ШІ (AI)",
   "Смарт-гаджет",
@@ -90,7 +154,7 @@ const originalLeft = [
   "Соцмережа"
 ];
 
-const originalRight = [
+const rightData = [
   "Безпритульні тварини",
   "Стрес і тривожність",
   "Сортування сміття",
@@ -101,33 +165,98 @@ const originalRight = [
   "Кишенькові гроші"
 ];
 
-let leftPool = [...originalLeft];
-let rightPool = [...originalRight];
+let leftPool = [];
+let rightPool = [];
 
-function getRandom(arr) {
-  const index = Math.floor(Math.random() * arr.length);
-  return arr.splice(index, 1)[0];
+function renderList() {
+  const leftCol = document.getElementById("leftColumn");
+  const rightCol = document.getElementById("rightColumn");
+
+  leftCol.innerHTML = "<h2>Технологія</h2>";
+  rightCol.innerHTML = "<h2>Проблема</h2>";
+
+  leftData.forEach(item => {
+    const div = document.createElement("div");
+    div.className = "item";
+    div.id = "L-" + item;
+    div.textContent = item;
+    leftCol.appendChild(div);
+  });
+
+  rightData.forEach(item => {
+    const div = document.createElement("div");
+    div.className = "item";
+    div.id = "R-" + item;
+    div.textContent = item;
+    rightCol.appendChild(div);
+  });
+}
+
+function spinAnimation(el) {
+  el.classList.add("spin");
+  let count = 0;
+
+  const interval = setInterval(() => {
+    el.textContent = "🎲 " + Math.random().toString(36).substring(2,7);
+    count++;
+    if (count > 10) {
+      clearInterval(interval);
+      el.classList.remove("spin");
+    }
+  }, 50);
 }
 
 function generate() {
   if (leftPool.length === 0 || rightPool.length === 0) {
-    alert("Варіанти закінчились 😅 Натисни 'Скинути'");
+    alert("Всі варіанти використані! Роблю ресет 🔄");
+    reset();
     return;
   }
 
-  const left = getRandom(leftPool);
-  const right = getRandom(rightPool);
+  const leftEl = document.getElementById("leftResult");
+  const rightEl = document.getElementById("rightResult");
 
-  document.getElementById("leftResult").textContent = left;
-  document.getElementById("rightResult").textContent = right;
+  spinAnimation(leftEl);
+  spinAnimation(rightEl);
+
+  setTimeout(() => {
+    const lIndex = Math.floor(Math.random() * leftPool.length);
+    const rIndex = Math.floor(Math.random() * rightPool.length);
+
+    const left = leftPool.splice(lIndex,1)[0];
+    const right = rightPool.splice(rIndex,1)[0];
+
+    leftEl.textContent = left;
+    rightEl.textContent = right;
+
+    document.getElementById("L-" + left).classList.add("used");
+    document.getElementById("R-" + right).classList.add("used");
+
+    updateCounter();
+  }, 600);
+}
+
+function updateCounter() {
+  document.getElementById("counter").textContent =
+    `Залишилось: ${leftPool.length} × ${rightPool.length}`;
 }
 
 function reset() {
-  leftPool = [...originalLeft];
-  rightPool = [...originalRight];
-  document.getElementById("leftResult").textContent = "—";
-  document.getElementById("rightResult").textContent = "—";
+  leftPool = [...leftData];
+  rightPool = [...rightData];
+
+  document.querySelectorAll(".item").forEach(el => {
+    el.classList.remove("used");
+  });
+
+  document.getElementById("leftResult").textContent = "Натисни “Згенерувати”";
+  document.getElementById("rightResult").textContent = "Натисни “Згенерувати”";
+
+  updateCounter();
 }
+
+renderList();
+reset();
 </script>
 
 </body>
